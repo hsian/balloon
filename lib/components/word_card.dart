@@ -49,6 +49,7 @@ class _WordCardState extends State<WordCard> {
   Widget build(BuildContext context) {
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
     final timestamp = formatter.parse(word['timestamp']);
+    timeago.setLocaleMessages('zh_CN', timeago.ZhCnMessages());
 
     return GestureDetector(
       onTap: () {
@@ -88,7 +89,7 @@ class _WordCardState extends State<WordCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          timeago.format(timestamp, locale: 'zh_CN'),
+                          timeago.format(timestamp),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).textTheme.headline6?.color,

@@ -17,8 +17,26 @@ class WordProvider with ChangeNotifier {
     if (apiRequestStatus == APIRequestStatus.loading) {
       Map res = await HttpService.getPersonalWords(page);
       count = res['count'];
-      words = res['data'];
+      words = [...words, ...res['data']];
       changeScreenLoaded();
+    }
+  }
+
+  getWordByKeyword(value) async {
+    if (apiRequestStatus != APIRequestStatus.loading) {
+      apiRequestStatus = APIRequestStatus.loading;
+      Map res = await HttpService.getWordByKeyword(value);
+      apiRequestStatus = APIRequestStatus.loaded;
+      return res['data'];
+    }
+  }
+
+  postWordById(id) async {
+    if (apiRequestStatus != APIRequestStatus.loading) {
+      apiRequestStatus = APIRequestStatus.loading;
+      Map res = await HttpService.postWordById(id);
+      apiRequestStatus = APIRequestStatus.loaded;
+      return res;
     }
   }
 }

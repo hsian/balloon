@@ -105,7 +105,7 @@ class _ExploreState extends State<Explore> with AutomaticKeepAliveClientMixin {
                       height: 10,
                     ),
                     Text(
-                      timeago.format(lastSeen, locale: 'zh_CN'),
+                      timeago.format(lastSeen),
                     )
                   ],
                 ),

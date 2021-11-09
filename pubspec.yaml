@@ -39,6 +39,7 @@ dependencies:
   timeago: ^3.1.0
   intl: ^0.17.0
   just_audio: ^0.9.14
+  flutter_easyrefresh: ^2.2.1
 
 
 dev_dependencies:

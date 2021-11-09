@@ -82,4 +82,30 @@ class HttpService {
       throw "Unable to retrieve audio.";
     }
   }
+
+  // 根据关键字翻译单词
+  static Future<Map> getWordByKeyword(String keyword) async {
+    var url = Uri.parse(baseURL + '/api/words_yd_trans/?q=$keyword');
+    var token = await User.getToken();
+
+    Response res = await get(url, headers: {"Authorization": "Bearer $token"});
+
+    if (res.statusCode == 200) {
+      var body = jsonDecode(res.body);
+
+      return body;
+    } else {
+      throw "Unable to retrieve word.";
+    }
+  }
+
+  static Future<Map> postWordById(int id) async {
+    var url = Uri.parse(baseURL + '/api/words_by_id/?id=$id');
+    var token = await User.getToken();
+
+    Response res = await get(url, headers: {"Authorization": "Bearer $token"});
+
+    var body = jsonDecode(res.body);
+    return body;
+  }
 }
