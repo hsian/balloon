@@ -62,12 +62,12 @@ class User {
     return prefs.getString('token');
   }
 
-  void setToken(String value) async {
+  static setToken(String value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', value);
   }
 
-  void removeToken() async {
+  static removeToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
   }

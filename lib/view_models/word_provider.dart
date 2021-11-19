@@ -7,6 +7,7 @@ class WordProvider with ChangeNotifier {
   int page = 1;
   List words = [];
   int count = 0;
+  bool hasMore = true;
 
   changeScreenLoaded() {
     apiRequestStatus = APIRequestStatus.loaded;
@@ -18,7 +19,19 @@ class WordProvider with ChangeNotifier {
       Map res = await HttpService.getPersonalWords(page);
       count = res['count'];
       words = [...words, ...res['data']];
+      if (res['data'].length == 0) {
+        hasMore = false;
+      }
       changeScreenLoaded();
+    }
+  }
+
+  getWordsByFirstPage() async {
+    if (apiRequestStatus == APIRequestStatus.loading) {
+      page = 1;
+      words = [];
+      hasMore = true;
+      await getWords();
     }
   }
 

@@ -40,7 +40,7 @@ class RouterTables {
     });
   }
 
-  ///路由拦截
+  // 路由拦截
   static Route onGenerateRoute<T extends Object>(RouteSettings settings) {
     return MaterialPageRoute<T>(
       settings: settings,

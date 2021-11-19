@@ -1,4 +1,7 @@
+import 'package:balloon/components/body_builder.dart';
+import 'package:balloon/components/loading_widget.dart';
 import 'package:balloon/routes/router_tables.dart';
+import 'package:balloon/util/enum/api_request_status.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:balloon/view_models/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -33,15 +36,22 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   late List items;
+  late UserProvider userProviderCache;
 
   @override
   void initState() {
     super.initState();
   }
 
+  @override
+  void deactivate() {
+    super.deactivate();
+  }
+
   List resetItems(UserProvider userProvider) {
     List items = [];
-    if (userProvider.user.token.isEmpty) {
+
+    if (userProvider.existUserInfo == false) {
       items = [
         actions['login'],
         actions['theme'],
@@ -61,21 +71,31 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (BuildContext context, UserProvider userProvider, child) {
+        userProviderCache = userProvider;
         items = resetItems(userProvider);
 
         return Scaffold(
-          body: Column(
-            children: [
-              _buildProfile(userProvider),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: items.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return _buildCellBar(userProvider, items[index]);
-                },
-              ),
-            ],
+          body: BodyBuilder(
+            apiRequestStatus: userProvider.apiRequestStatus,
+            reload: () => userProvider.getUserInfo(),
+            child: FutureBuilder(
+              future: userProvider.getUserInfo(),
+              builder: (context, snapshot) {
+                return Column(
+                  children: [
+                    _buildProfile(userProvider),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: items.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _buildCellBar(userProvider, items[index]);
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -84,7 +104,7 @@ class _ProfileState extends State<Profile> {
 
   Widget _buildProfile(UserProvider userProvider) {
     return Offstage(
-      offstage: userProvider.user.token.isEmpty,
+      offstage: !userProvider.existUserInfo,
       child: Container(
         color: Theme.of(context).backgroundColor,
         padding: EdgeInsets.only(
@@ -108,7 +128,7 @@ class _ProfileState extends State<Profile> {
             ),
             Expanded(
               child: Text(
-                userProvider.user.data!.nickname,
+                userProvider.user['nickname'],
                 style: TextStyle(fontSize: 16),
               ),
             ),
@@ -122,6 +142,7 @@ class _ProfileState extends State<Profile> {
     return InkWell(
       onTap: () {
         if (item['label'] == actions['login']['label']) {
+          userProviderCache.apiRequestStatus = APIRequestStatus.loading;
           Navigator.pushNamed(context, RouterTables.loginPath);
           return;
         }
@@ -132,6 +153,7 @@ class _ProfileState extends State<Profile> {
         if (item['label'] == actions['logout']['label']) {
           userProvider.setUserEmpty();
           EasyLoading.showSuccess('退出成功!');
+          userProviderCache.apiRequestStatus = APIRequestStatus.loading;
           Navigator.pushNamed(context, RouterTables.mainPath);
           return;
         }

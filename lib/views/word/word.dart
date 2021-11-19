@@ -74,6 +74,10 @@ class _WordState extends State<Word> {
     } else {
       EasyLoading.showSuccess(res['message']);
       inputCancel();
+
+      // 重新获取第一页单词列表
+      wordProvider.apiRequestStatus = APIRequestStatus.loading;
+      await wordProvider.getWordsByFirstPage();
     }
   }
 
@@ -104,38 +108,9 @@ class _WordState extends State<Word> {
                   return Stack(
                     children: [
                       Container(
-                        // child: NotificationListener(
-                        //   onNotification: (ScrollNotification notification) {
-                        //     if (notification is ScrollUpdateNotification) {
-                        //       setState(() {
-                        //         scrolling = true;
-                        //       });
-                        //     }
-                        //     return true;
-                        //   },
-                        // child: RefreshIndicator(
-                        //   onRefresh: () {
-                        //     wordProvider.count = 1;
-                        //     wordProvider.apiRequestStatus =
-                        //         APIRequestStatus.loading;
-                        //     return wordProvider.getWords();
-                        //   },
-                        //   child: ListView.builder(
-                        //     itemCount: wordProvider.words.length,
-                        //     shrinkWrap: true,
-                        //     padding: EdgeInsets.symmetric(
-                        //         horizontal: 8, vertical: 0),
-                        //     itemBuilder: (BuildContext context, int index) {
-                        //       return WordCard(
-                        //         scrolling: scrolling,
-                        //         word: wordProvider.words[index],
-                        //       );
-                        //     },
-                        //   ),
-                        // ),
-
-                        // 上下拉加载数据还有问题！！！！！！！！！！
+                        padding: EdgeInsets.only(bottom: 60),
                         child: EasyRefresh(
+                          // enableControlFinishLoad: true,
                           header: ClassicalHeader(
                             refreshFailedText: '更新失败',
                             refreshReadyText: '开始更新',
@@ -145,8 +120,13 @@ class _WordState extends State<Word> {
                             showInfo: false,
                           ),
                           footer: ClassicalFooter(
+                            loadFailedText: "请求错误",
+                            loadReadyText: "开始请求",
+                            loadingText: "请求数据中...",
                             loadText: "请求数据中...",
+                            loadedText: "没有更多了",
                             noMoreText: "没有更多了",
+                            showInfo: false,
                           ),
                           child: ListView.builder(
                             itemCount: wordProvider.words.length,
@@ -161,21 +141,20 @@ class _WordState extends State<Word> {
                             },
                           ),
                           onRefresh: () async {
-                            wordProvider.page = 1;
-                            wordProvider.words = [];
                             wordProvider.apiRequestStatus =
                                 APIRequestStatus.loading;
-                            return wordProvider.getWords();
+                            return wordProvider.getWordsByFirstPage();
                           },
                           onLoad: () async {
-                            wordProvider.page = wordProvider.page + 1;
-                            wordProvider.apiRequestStatus =
-                                APIRequestStatus.loading;
-                            return wordProvider.getWords();
+                            if (wordProvider.hasMore) {
+                              wordProvider.page = wordProvider.page + 1;
+                              wordProvider.apiRequestStatus =
+                                  APIRequestStatus.loading;
+                              return wordProvider.getWords();
+                            }
                           },
                         ),
                       ),
-                      // ),
                       _buildSearchInput(wordProvider),
                       _buildSearchResult(),
                     ],
@@ -280,37 +259,39 @@ class _WordState extends State<Word> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text.rich(TextSpan(children: [
-                      TextSpan(
-                        text: searchResult['keyword'],
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Theme.of(context).textTheme.headline4?.color),
-                      ),
-                      // keyword 音频按钮
-                      // WidgetSpan(
-                      //   child: SizedBox(
-                      //     height: 23.0,
-                      //     width: 23.0,
-                      //     child: InkWell(
-                      //       onTap: () {
-                      //         print('---------------------');
-                      //       },
-                      //       child: Card(
-                      //         child: Center(
-                      //           child: Icon(
-                      //             Icons.volume_down,
-                      //             size: 16.0,
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                    ])),
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                          text: searchResult['keyword'],
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context).textTheme.headline4?.color),
+                        ),
+                        // keyword 音频按钮
+                        // WidgetSpan(
+                        //   child: SizedBox(
+                        //     height: 23.0,
+                        //     width: 23.0,
+                        //     child: InkWell(
+                        //       onTap: () {
+                        //         print('---------------------');
+                        //       },
+                        //       child: Card(
+                        //         child: Center(
+                        //           child: Icon(
+                        //             Icons.volume_down,
+                        //             size: 16.0,
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
+                      ]),
+                    ),
                   ),
                 ],
               ),

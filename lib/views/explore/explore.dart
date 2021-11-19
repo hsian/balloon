@@ -1,6 +1,8 @@
 import 'package:balloon/components/body_builder.dart';
+import 'package:balloon/util/enum/api_request_status.dart';
 import 'package:flutter/material.dart';
 import 'package:balloon/view_models/explore_provider.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
@@ -26,6 +28,7 @@ class _ExploreState extends State<Explore> with AutomaticKeepAliveClientMixin {
       builder: (BuildContext context, ExploreProvider exploreProvider, child) {
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             centerTitle: false,
             title: Text(
               '浏览',
@@ -34,11 +37,64 @@ class _ExploreState extends State<Explore> with AutomaticKeepAliveClientMixin {
           ),
           body: BodyBuilder(
             apiRequestStatus: exploreProvider.apiRequestStatus,
-            reload: () => exploreProvider.getExplores(exploreProvider.page),
-            child: RefreshIndicator(
-              onRefresh: () =>
-                  exploreProvider.getExplores(exploreProvider.page),
-              child: _buildBodyList(exploreProvider),
+            reload: () => exploreProvider.getExplores(),
+            // child: RefreshIndicator(
+            //   onRefresh: () =>
+            //       exploreProvider.getExplores(exploreProvider.page),
+            //   child: _buildBodyList(exploreProvider),
+            // ),
+            child: FutureBuilder(
+              future: exploreProvider.getExplores(),
+              builder: (context, snapshot) {
+                return Container(
+                  padding: EdgeInsets.only(bottom: 0),
+                  child: EasyRefresh(
+                    // enableControlFinishLoad: true,
+                    header: ClassicalHeader(
+                      refreshFailedText: '更新失败',
+                      refreshReadyText: '开始更新',
+                      refreshingText: '更新中...',
+                      refreshedText: '更新完成',
+                      refreshText: "开始更新",
+                      showInfo: false,
+                    ),
+                    footer: ClassicalFooter(
+                      loadFailedText: "请求错误",
+                      loadReadyText: "开始请求",
+                      loadingText: "请求数据中...",
+                      loadText: "请求数据中...",
+                      loadedText: "没有更多了",
+                      noMoreText: "没有更多了",
+                      showInfo: false,
+                    ),
+                    child: ListView.builder(
+                      itemCount: exploreProvider.explores.length,
+                      shrinkWrap: true,
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      itemBuilder: (BuildContext context, int index) {
+                        return _buildStatsItem(exploreProvider.explores[index]);
+                        // return WordCard(
+                        //   scrolling: scrolling,
+                        //   word: wordProvider.words[index],
+                        // );
+                      },
+                    ),
+                    onRefresh: () async {
+                      exploreProvider.apiRequestStatus =
+                          APIRequestStatus.loading;
+                      return exploreProvider.getWordsByFirstPage();
+                    },
+                    onLoad: () async {
+                      if (exploreProvider.hasMore) {
+                        exploreProvider.page = exploreProvider.page + 1;
+                        exploreProvider.apiRequestStatus =
+                            APIRequestStatus.loading;
+                        return exploreProvider.getExplores();
+                      }
+                    },
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -46,26 +102,26 @@ class _ExploreState extends State<Explore> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  _buildBodyList(exploreProvider) {
-    return FutureBuilder(
-      future: exploreProvider.getExplores(exploreProvider.page),
-      builder: (context, snapshot) {
-        return ListView.builder(
-          itemCount: exploreProvider.explores.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Column(
-              children: [
-                SizedBox(
-                  height: 1,
-                ),
-                _buildStatsItem(exploreProvider.explores[index]),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+  // _buildBodyList(exploreProvider) {
+  //   return FutureBuilder(
+  //     future: exploreProvider.getExplores(exploreProvider.page),
+  //     builder: (context, snapshot) {
+  //       return ListView.builder(
+  //         itemCount: exploreProvider.explores.length,
+  //         itemBuilder: (BuildContext context, int index) {
+  //           return Column(
+  //             children: [
+  //               SizedBox(
+  //                 height: 1,
+  //               ),
+  //               _buildStatsItem(exploreProvider.explores[index]),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   _buildStatsItem(item) {
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');

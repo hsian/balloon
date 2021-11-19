@@ -7,6 +7,7 @@ class ExploreProvider with ChangeNotifier {
   APIRequestStatus apiRequestStatus = APIRequestStatus.loading;
   int page = 1;
   List explores = [];
+  bool hasMore = true;
 
   changeScreenLoading() {
     apiRequestStatus = APIRequestStatus.loading;
@@ -23,13 +24,23 @@ class ExploreProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  getExplores(currentPage) async {
+  getExplores() async {
     if (apiRequestStatus == APIRequestStatus.loading) {
-      List value = await HttpService.getExploreData(currentPage);
-      explores = value;
+      List value = (await HttpService.getExploreData(page)) as List;
+      explores = [...explores, ...value];
+      if (value.length == 0) {
+        hasMore = false;
+      }
       changeScreenLoaded();
     }
+  }
 
-    return explores;
+  getWordsByFirstPage() async {
+    if (apiRequestStatus == APIRequestStatus.loading) {
+      page = 1;
+      explores = [];
+      hasMore = true;
+      await getExplores();
+    }
   }
 }

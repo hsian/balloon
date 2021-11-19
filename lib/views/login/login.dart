@@ -1,8 +1,6 @@
 import 'dart:async';
 
-// import 'package:balloon/util/router.dart';
-// import 'package:balloon/views/word/word.dart';
-import 'package:balloon/models/user.dart';
+import 'package:balloon/routes/router_tables.dart';
 import 'package:flutter/material.dart';
 import 'package:balloon/service/http_service.dart';
 import 'package:provider/provider.dart';
@@ -52,9 +50,10 @@ class _LoginState extends State<Login> {
   }
 
   void login(userProvider) async {
-    User user = await HttpService.login();
+    Map user = await HttpService.login();
     userProvider.setUser(user);
-    Navigator.pop(context);
+    // Navigator.pop(context);
+    Navigator.pushNamed(context, RouterTables.mainPath);
   }
 
   @override
@@ -191,6 +190,30 @@ class _LoginState extends State<Login> {
                     child: Text(
                       '登录',
                       style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  height: 45,
+                  margin: EdgeInsets.only(top: 10, left: 20, right: 20),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      elevation: MaterialStateProperty.all(0),
+                      backgroundColor: MaterialStateProperty.all(
+                        Theme.of(context).backgroundColor,
+                      ),
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(35))),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, RouterTables.mainPath);
+                    },
+                    child: Text(
+                      '首页',
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.headline6?.color),
                     ),
                   ),
                 ),
