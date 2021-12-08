@@ -11,7 +11,7 @@ class Splash extends StatefulWidget {
 
 class _SplashState extends State<Splash> {
   startTimeout() {
-    return new Timer(Duration(seconds: 1), handleTimeout);
+    return new Timer(Duration(milliseconds: 1000), handleTimeout);
   }
 
   void handleTimeout() {
@@ -34,6 +34,7 @@ class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).accentColor,
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -41,8 +42,8 @@ class _SplashState extends State<Splash> {
           children: <Widget>[
             Image.asset(
               "assets/images/app-icon.png",
-              height: 300,
-              width: 300,
+              height: 120,
+              width: 120,
             )
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -7,23 +8,26 @@ import 'package:just_audio/just_audio.dart';
 
 class WordCard extends StatefulWidget {
   final word;
+  final void Function(int id) onRemove;
 
   WordCard({
     Key? key,
     required this.scrolling,
     required this.word,
+    required this.onRemove,
   }) : super(key: key);
 
   final bool scrolling;
 
   @override
-  _WordCardState createState() => _WordCardState(word);
+  _WordCardState createState() => _WordCardState(word, onRemove);
 }
 
 class _WordCardState extends State<WordCard> {
   late bool _visible;
   final word;
-  _WordCardState(this.word);
+  final void Function(int id) onRemove;
+  _WordCardState(this.word, this.onRemove);
 
   @override
   void initState() {
@@ -49,19 +53,18 @@ class _WordCardState extends State<WordCard> {
   Widget build(BuildContext context) {
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
     final timestamp = formatter.parse(word['timestamp']);
-    timeago.setLocaleMessages('zh_CN', timeago.ZhCnMessages());
 
     return GestureDetector(
       onTap: () {
         _changeVisible(true);
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 2.0),
+        margin: EdgeInsets.symmetric(vertical: 4.0),
         decoration: BoxDecoration(
           color: Theme.of(context).backgroundColor,
-          // borderRadius: BorderRadius.all(
-          //   Radius.circular(4),
-          // ),
+          borderRadius: BorderRadius.all(
+            Radius.circular(4),
+          ),
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -89,10 +92,10 @@ class _WordCardState extends State<WordCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          timeago.format(timestamp),
+                          timeago.format(timestamp, locale: 'zh_CN'),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Theme.of(context).textTheme.headline6?.color,
+                            color: Colors.grey,
                           ),
                         ),
                       ),
@@ -126,10 +129,12 @@ class _WordCardState extends State<WordCard> {
     handleAudioPlay(item) async {
       final player = AudioPlayer();
       // 请求音频
-      final value = await HttpService.getAudioByKeyword(item.trim());
-      final data = value['data'];
-      await player.setUrl('${HttpService.baseURL}/${data['us_audio']}');
-      player.play();
+      Response res = await HttpService.getAudioByKeyword(item.trim());
+      if (res.statusCode == 200) {
+        final data = res.data['data'];
+        await player.setUrl('${HttpService.baseURL}/${data['us_audio']}');
+        player.play();
+      }
     }
 
     List<Widget> list = [];
@@ -151,14 +156,14 @@ class _WordCardState extends State<WordCard> {
             height: 24,
             child: IconButton(
               padding: EdgeInsets.all(0),
-              iconSize: 12,
+              iconSize: 16,
               onPressed: () {
                 handleAudioPlay(item);
               },
               icon: Icon(
                 FeatherIcons.volume2,
                 color: Colors.blue,
-                size: 12,
+                size: 16,
               ),
             ),
           )
@@ -190,7 +195,7 @@ class _WordCardState extends State<WordCard> {
               width: 50,
               child: IconButton(
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-                onPressed: () {},
+                onPressed: () => onRemove(word['id']),
                 icon: Icon(
                   FeatherIcons.trash2,
                   color: Colors.white,

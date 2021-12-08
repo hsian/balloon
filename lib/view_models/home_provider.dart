@@ -14,10 +14,12 @@ class HomeProvider with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   changeScreenLoaded() {
-    new Timer(Duration(seconds: 2), () {
+    new Timer(Duration(milliseconds: 100), () {
       apiRequestStatus = APIRequestStatus.loaded;
       notifyListeners();
     });
+    // apiRequestStatus = APIRequestStatus.loaded;
+    // notifyListeners();
   }
 
   void setApiRequestStatus(APIRequestStatus value) {

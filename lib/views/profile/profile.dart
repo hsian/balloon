@@ -1,5 +1,4 @@
 import 'package:balloon/components/body_builder.dart';
-import 'package:balloon/components/loading_widget.dart';
 import 'package:balloon/routes/router_tables.dart';
 import 'package:balloon/util/enum/api_request_status.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -26,7 +25,11 @@ Map actions = {
   "logout": {
     'icon': FeatherIcons.logOut,
     'label': '退出登录',
-  }
+  },
+  "contact": {
+    'icon': FeatherIcons.messageSquare,
+    'label': '联系作者',
+  },
 };
 
 class Profile extends StatefulWidget {
@@ -55,11 +58,13 @@ class _ProfileState extends State<Profile> {
       items = [
         actions['login'],
         actions['theme'],
+        actions['contact'],
       ];
     } else {
       items = [
-        actions['settings'],
+        // actions['settings'],
         actions['theme'],
+        actions['contact'],
         actions['logout'],
       ];
     }
@@ -108,16 +113,17 @@ class _ProfileState extends State<Profile> {
       child: Container(
         color: Theme.of(context).backgroundColor,
         padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 30, bottom: 0),
+          top: MediaQuery.of(context).padding.top + 30,
+          bottom: 0,
+          left: 20,
+          right: 20,
+        ),
         child: Row(
           children: [
-            SizedBox(
-              width: 20,
-            ),
             new ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://img14.360buyimg.com/ceco/s300x300_jfs/t1/96894/2/8726/522292/5e07663aE99a1f3a7/50c33370b8c790a8.jpg!q70.jpg',
+              child: Image.asset(
+                'assets/images/default-avatar.png',
                 width: 64,
                 height: 64,
                 fit: BoxFit.cover,
@@ -127,9 +133,22 @@ class _ProfileState extends State<Profile> {
               width: 15,
             ),
             Expanded(
-              child: Text(
-                userProvider.user['nickname'],
-                style: TextStyle(fontSize: 16),
+              child: GestureDetector(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        userProvider.user['nickname'],
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    _buildLeading({"label": ""}),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.pushNamed(context, RouterTables.changeProfilePath);
+                },
               ),
             ),
           ],
@@ -155,6 +174,10 @@ class _ProfileState extends State<Profile> {
           EasyLoading.showSuccess('退出成功!');
           userProviderCache.apiRequestStatus = APIRequestStatus.loading;
           Navigator.pushNamed(context, RouterTables.mainPath);
+          return;
+        }
+        if (item['label'] == actions['contact']['label']) {
+          EasyLoading.showToast('添加微信号：hsian_ ');
           return;
         }
       },

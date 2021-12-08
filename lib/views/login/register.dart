@@ -7,39 +7,72 @@ import 'package:provider/provider.dart';
 import 'package:balloon/view_models/user_provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-class Login extends StatefulWidget {
+class Register extends StatefulWidget {
   @override
-  _LoginState createState() => _LoginState();
+  _RegisterState createState() => _RegisterState();
 }
 
-class _LoginState extends State<Login> {
+ValidatorFunction _mustMatch(String controlName, String matchingControlName) {
+  return (AbstractControl<dynamic> control) {
+    final form = control as FormGroup;
+
+    final formControl = form.control(controlName);
+    final matchingFormControl = form.control(matchingControlName);
+
+    if (formControl.value != matchingFormControl.value) {
+      matchingFormControl.setErrors({'mustMatch': true});
+
+      // force messages to show up as soon as possible
+      matchingFormControl.markAsTouched();
+    } else {
+      matchingFormControl.removeError('mustMatch');
+    }
+
+    return null;
+  };
+}
+
+class _RegisterState extends State<Register> {
   final form = FormGroup({
     'username': FormControl<String>(validators: [
       Validators.required,
       Validators.pattern(r'^1[0-9]{10}$'),
     ]),
+    'nickname': FormControl<String>(validators: [
+      Validators.required,
+      Validators.pattern(r'^[\u4E00-\u9FA5A-Za-z0-9_]{2,6}$'),
+    ]),
     'password': FormControl<String>(validators: [
       Validators.required,
+      Validators.pattern(r'^[\w@#]{6,18}$'),
     ]),
-  });
+    'passwordConfirmation': FormControl<String>(),
+  }, validators: [
+    _mustMatch('password', 'passwordConfirmation')
+  ]);
 
   void _onPressed(UserProvider userProvider) async {
     if (form.valid) {
       userProvider.apiRequestStatus = APIRequestStatus.loading;
-      Response res = await userProvider.login({...form.value});
+      Response res = await userProvider.register({...form.value});
 
       if (res.statusCode == 200) {
-        final body = res.data;
-        EasyLoading.showToast(body['message']);
+        EasyLoading.showToast(res.data['message']);
         Navigator.pop(context);
       }
     } else {
       final username = form.control('username');
+      final nickname = form.control('nickname');
       final password = form.control('password');
+      final passwordConfirmation = form.control('passwordConfirmation');
       username.focus();
       username.unfocus();
+      nickname.focus();
+      nickname.unfocus();
       password.focus();
       password.unfocus();
+      passwordConfirmation.focus();
+      passwordConfirmation.unfocus();
     }
   }
 
@@ -82,6 +115,25 @@ class _LoginState extends State<Login> {
                       ),
                       ReactiveTextField(
                         decoration: InputDecoration(
+                          hintText: '请输入昵称',
+                          contentPadding: EdgeInsets.only(top: -5, bottom: 0),
+                          hintStyle: TextStyle(
+                            color: Color(0xff999999),
+                            fontSize: 16,
+                          ),
+                          alignLabelWithHint: true,
+                          border:
+                              OutlineInputBorder(borderSide: BorderSide.none),
+                        ),
+                        strutStyle: StrutStyle(),
+                        formControlName: 'nickname',
+                        validationMessages: (control) => {
+                          'required': '昵称不能为空',
+                          'pattern': "昵称必须是2~6位字符",
+                        },
+                      ),
+                      ReactiveTextField(
+                        decoration: InputDecoration(
                           hintText: '请输入密码',
                           contentPadding: EdgeInsets.only(top: -5, bottom: 0),
                           hintStyle: TextStyle(
@@ -96,6 +148,25 @@ class _LoginState extends State<Login> {
                         obscureText: true,
                         validationMessages: (control) => {
                           'required': '密码不能为空',
+                          'pattern': "密码必须是6~18位字符",
+                        },
+                      ),
+                      ReactiveTextField(
+                        decoration: InputDecoration(
+                          hintText: '请再次输入密码',
+                          contentPadding: EdgeInsets.only(top: -5, bottom: 0),
+                          hintStyle: TextStyle(
+                            color: Color(0xff999999),
+                            fontSize: 16,
+                          ),
+                          alignLabelWithHint: true,
+                          border:
+                              OutlineInputBorder(borderSide: BorderSide.none),
+                        ),
+                        formControlName: 'passwordConfirmation',
+                        obscureText: true,
+                        validationMessages: (control) => {
+                          'mustMatch': '两次密码不一致',
                         },
                       ),
                       Container(
@@ -116,7 +187,7 @@ class _LoginState extends State<Login> {
                                             BorderRadius.circular(35))),
                               ),
                               child: Text(
-                                '登录',
+                                '注册',
                                 style: TextStyle(fontSize: 16),
                               ),
                               onPressed: () => _onPressed(userProvider),
@@ -140,10 +211,12 @@ class _LoginState extends State<Login> {
                           ),
                           onPressed: () {
                             Navigator.pushReplacementNamed(
-                                context, RouterTables.registerPath);
+                              context,
+                              RouterTables.loginPath,
+                            );
                           },
                           child: Text(
-                            '注册',
+                            '登录',
                             style: TextStyle(
                                 fontSize: 16,
                                 color: Theme.of(context)

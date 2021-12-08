@@ -1,135 +1,136 @@
-import 'dart:convert';
 import 'package:balloon/models/user.dart';
-import 'package:http/http.dart';
+import 'package:dio/dio.dart';
 import 'package:balloon/service/http_request.dart';
 
 class HttpService {
-  static final String baseURL = "http://192.168.1.115:5000";
-  static HttpRequest httpRequest = new HttpRequest();
+  // static final String baseURL = "http://192.168.1.116:5000";
+  static final String baseURL = "http://49.234.206.77:8997";
+
+  static HttpRequest httpRequest = new HttpRequest(
+    BaseOptions(
+      baseUrl: baseURL,
+    ),
+  );
 
   // 登录
-  static Future<Map> login() async {
-    var url = Uri.parse(baseURL + '/api/login/');
-    Response res =
-        await httpRequest.request(url, method: "POST", body: {"id": "1"});
+  static Future<Response> login(Map data) async {
+    Response res = await httpRequest.request(
+      '/api/login/',
+      method: "POST",
+      data: {...data},
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-      // user info
-      var user = body['data'];
-      User.setToken(body['token']);
+    return res;
+  }
 
-      return user;
-    } else {
-      throw "登录失败.";
-    }
+  // 注册
+  static Future<Response> register(Map data) async {
+    Response res = await httpRequest.request(
+      '/api/register/',
+      method: "POST",
+      data: {...data},
+    );
+    return res;
   }
 
   // 获取个人信息
-  static Future<Map> getUserInfo({bool? widthout401}) async {
-    var url = Uri.parse(baseURL + '/api/user_info/');
+  static Future<Response> getUserInfo({bool? widthout401}) async {
     var token = await User.getToken();
 
     Response res = await httpRequest.request(
-      url,
+      '/api/user_info/',
       method: "GET",
       headers: {"Authorization": "Bearer $token"},
       widthout401: widthout401,
     );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-
-      return body;
-    } else {
-      throw "获取个人信息失败.";
-    }
+    return res;
   }
 
   // 获取浏览页的数据列表
-  static Future<List> getExploreData(int page) async {
-    var url = Uri.parse(baseURL + '/api/users/?page=$page');
-    Response res = await httpRequest.request(url, method: "GET");
+  static Future<Response> getExploreData(int page) async {
+    Response res = await httpRequest.request(
+      '/api/users/?page=$page',
+      method: "GET",
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-
-      if (body['users'] == null) {
-        return [];
-      } else {
-        return body['users'];
-      }
-    } else {
-      throw "获取浏览页数据失败.";
-    }
+    return res;
   }
 
   // 获取单词列表
-  static Future<Map> getPersonalWords(int page) async {
-    var url = Uri.parse(baseURL + '/api/words/?page=$page');
+  static Future<Response> getPersonalWords(int page) async {
     var token = await User.getToken();
 
-    Response res = await httpRequest
-        .request(url, headers: {"Authorization": "Bearer $token"});
+    Response res = await httpRequest.request(
+      '/api/words/?page=$page',
+      headers: {"Authorization": "Bearer $token"},
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-
-      return body;
-    } else {
-      throw "获取单词列表失败.";
-    }
+    return res;
   }
 
   // 获取单词音频
-  static Future<Map> getAudioByKeyword(String keyword) async {
-    var url =
-        Uri.parse(baseURL + '/api/word_audio_by_keyword/?keyword=$keyword');
+  static Future<Response> getAudioByKeyword(String keyword) async {
     var token = await User.getToken();
 
-    Response res = await httpRequest
-        .request(url, headers: {"Authorization": "Bearer $token"});
+    Response res = await httpRequest.request(
+      '/api/word_audio_by_keyword/?keyword=$keyword',
+      headers: {"Authorization": "Bearer $token"},
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-
-      return body;
-    } else {
-      throw "获取单词音频失败.";
-    }
+    return res;
   }
 
   // 根据关键字翻译单词
-  static Future<Map> getWordByKeyword(String keyword) async {
-    var url = Uri.parse(baseURL + '/api/words_yd_trans/?q=$keyword');
+  static Future<Response> getWordByKeyword(String keyword) async {
     var token = await User.getToken();
 
-    Response res = await httpRequest
-        .request(url, headers: {"Authorization": "Bearer $token"});
+    Response res = await httpRequest.request(
+      '/api/words_yd_trans/?q=$keyword',
+      headers: {"Authorization": "Bearer $token"},
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
-
-      return body;
-    } else {
-      throw "关键字翻译单词失败.";
-    }
+    return res;
   }
 
   // 新增单词
-  static Future<Map> postWordById(int id) async {
-    var url = Uri.parse(baseURL + '/api/words_by_id/?id=$id');
+  static Future<Response> postWordById(int id) async {
     var token = await User.getToken();
 
-    Response res = await httpRequest
-        .request(url, headers: {"Authorization": "Bearer $token"});
+    Response res = await httpRequest.request(
+      '/api/words_by_id/?id=$id',
+      headers: {"Authorization": "Bearer $token"},
+    );
 
-    if (res.statusCode == 200) {
-      var body = jsonDecode(res.body);
+    return res;
+  }
 
-      return body;
-    } else {
-      throw "新增单词失败.";
-    }
+  // 删除单词
+  static Future<Response> deleteWordById(int id) async {
+    var token = await User.getToken();
+
+    Response res = await httpRequest.request(
+      '/api/word_remove_by_id/?id=$id',
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    return res;
+  }
+
+  // 修改个人信息
+  static Future<Response> updateUserProfile(Map data) async {
+    var token = await User.getToken();
+
+    Response res = await httpRequest.request(
+      '/api/user/',
+      headers: {"Authorization": "Bearer $token"},
+      method: "PUT",
+      data: {
+        'gender': data['gender'],
+        'nickname': data['nickname'],
+      },
+    );
+
+    return res;
   }
 }

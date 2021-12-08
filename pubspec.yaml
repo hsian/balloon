@@ -34,13 +34,16 @@ dependencies:
   flutter_spinkit: ^5.0.0
   image_picker: ^0.8.4
   flutter_feather_icons: ^2.0.0+1
-  http: ^0.13.3
   flutter_easyloading: ^3.0.3
   timeago: ^3.1.0
   intl: ^0.17.0
   just_audio: ^0.9.14
   flutter_easyrefresh: ^2.2.1
-
+  pull_to_refresh: ^2.0.0
+  awesome_select: ^5.1.0
+  dio: ^4.0.3
+  reactive_forms: ^10.6.6
+  bouncing_widget: ^2.0.0
 
 dev_dependencies:
   flutter_test:

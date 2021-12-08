@@ -2,6 +2,7 @@ import 'package:balloon/views/change_profile/change_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:balloon/views/home/home.dart';
 import 'package:balloon/views/login/login.dart';
+import 'package:balloon/views/login/register.dart';
 import 'package:balloon/views/explore/explore.dart';
 import 'package:balloon/views/word/word.dart';
 import 'package:balloon/views/profile/profile.dart';
@@ -14,6 +15,7 @@ class RouterTables {
   static const String splashPath = 'splash';
   static const String homePath = 'home';
   static const String loginPath = 'login';
+  static const String registerPath = 'register';
   static const String explorePath = 'explore';
   static const String wordPath = 'word';
   static const String profilePath = 'profile';
@@ -24,6 +26,7 @@ class RouterTables {
     splashPath: (context) => Splash(),
     homePath: (context) => Home(),
     loginPath: (context) => Login(),
+    registerPath: (context) => Register(),
     explorePath: (context) => Explore(),
     wordPath: (context) => Word(),
     profilePath: (context) => Profile(),

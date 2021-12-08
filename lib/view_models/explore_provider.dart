@@ -1,4 +1,5 @@
 import 'package:balloon/service/http_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:balloon/util/enum/api_request_status.dart';
@@ -26,21 +27,30 @@ class ExploreProvider with ChangeNotifier {
 
   getExplores() async {
     if (apiRequestStatus == APIRequestStatus.loading) {
-      List value = (await HttpService.getExploreData(page)) as List;
-      explores = [...explores, ...value];
-      if (value.length == 0) {
-        hasMore = false;
+      Response res = await HttpService.getExploreData(page);
+
+      if (res.statusCode == 200) {
+        var body = res.data;
+
+        if (body['users'] == null) {
+          explores = [...explores];
+        } else {
+          explores = [...explores, ...body['users']];
+          if (body['users'].length == 0) {
+            hasMore = false;
+          }
+        }
       }
+
       changeScreenLoaded();
     }
   }
 
-  getWordsByFirstPage() async {
+  getExploresByFirstPage() async {
     if (apiRequestStatus == APIRequestStatus.loading) {
       page = 1;
       explores = [];
       hasMore = true;
-      await getExplores();
     }
   }
 }

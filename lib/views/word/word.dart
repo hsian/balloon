@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:balloon/components/body_builder.dart';
 import 'package:balloon/util/enum/api_request_status.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:balloon/view_models/word_provider.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:balloon/service/http_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class Word extends StatefulWidget {
   @override
@@ -28,6 +29,13 @@ class _WordState extends State<Word> {
   };
 
   TextEditingController inputController = TextEditingController();
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+
+  initState() {
+    super.initState();
+    context.read<WordProvider>().getWords();
+  }
 
   void inputChange(String value) {
     setState(() {
@@ -68,16 +76,28 @@ class _WordState extends State<Word> {
 
   // 添加新单词
   void addNewWord(WordProvider wordProvider) async {
-    var res = await wordProvider.postWordById(searchResult['id']);
-    if (res['error'] == 'bad request') {
-      EasyLoading.showInfo(res['message']);
-    } else {
-      EasyLoading.showSuccess(res['message']);
+    Response res = await wordProvider.postWordById(searchResult['id']);
+    if (res.statusCode == 200) {
+      EasyLoading.showSuccess(res.data['message']);
       inputCancel();
 
       // 重新获取第一页单词列表
       wordProvider.apiRequestStatus = APIRequestStatus.loading;
-      await wordProvider.getWordsByFirstPage();
+      wordProvider.getWordsByFirstPage();
+      await wordProvider.getWords();
+    }
+  }
+
+  // 删除单词
+  removeWord(WordProvider wordProvider, int id, int index) async {
+    Response res = await wordProvider.deleteWordById(id);
+
+    if (res.statusCode == 200) {
+      EasyLoading.showSuccess(res.data['message']);
+      inputCancel();
+
+      // 重新获取单词列表
+      wordProvider.deleteWordByIndex(index);
     }
   }
 
@@ -101,71 +121,89 @@ class _WordState extends State<Word> {
             backgroundColor: Theme.of(context).dividerColor,
             body: BodyBuilder(
               apiRequestStatus: wordProvider.apiRequestStatus,
-              reload: () => wordProvider.getWords(),
-              child: FutureBuilder(
-                future: wordProvider.getWords(),
-                builder: (context, snapshot) {
-                  return Stack(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.only(bottom: 60),
-                        child: EasyRefresh(
-                          // enableControlFinishLoad: true,
-                          header: ClassicalHeader(
-                            refreshFailedText: '更新失败',
-                            refreshReadyText: '开始更新',
-                            refreshingText: '更新中...',
-                            refreshedText: '更新完成',
-                            refreshText: "开始更新",
-                            showInfo: false,
-                          ),
-                          footer: ClassicalFooter(
-                            loadFailedText: "请求错误",
-                            loadReadyText: "开始请求",
-                            loadingText: "请求数据中...",
-                            loadText: "请求数据中...",
-                            loadedText: "没有更多了",
-                            noMoreText: "没有更多了",
-                            showInfo: false,
-                          ),
-                          child: ListView.builder(
-                            itemCount: wordProvider.words.length,
-                            shrinkWrap: true,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 0),
-                            itemBuilder: (BuildContext context, int index) {
-                              return WordCard(
-                                scrolling: scrolling,
-                                word: wordProvider.words[index],
-                              );
-                            },
-                          ),
-                          onRefresh: () async {
-                            wordProvider.apiRequestStatus =
-                                APIRequestStatus.loading;
-                            return wordProvider.getWordsByFirstPage();
-                          },
-                          onLoad: () async {
-                            if (wordProvider.hasMore) {
-                              wordProvider.page = wordProvider.page + 1;
-                              wordProvider.apiRequestStatus =
-                                  APIRequestStatus.loading;
-                              return wordProvider.getWords();
-                            }
-                          },
-                        ),
+              reload: () => {},
+              child: Stack(
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(bottom: 60, top: 4),
+                    child: SmartRefresher(
+                      enablePullDown: true,
+                      enablePullUp: true,
+                      header: MaterialClassicHeader(
+                        backgroundColor: Theme.of(context).accentColor,
                       ),
-                      _buildSearchInput(wordProvider),
-                      _buildSearchResult(),
-                    ],
-                  );
-                },
+                      footer: ClassicFooter(
+                        loadStyle: LoadStyle.ShowWhenLoading,
+                        completeDuration: Duration(milliseconds: 500),
+                        idleText: "请求完成",
+                        failedText: "请求错误",
+                        canLoadingText: "开始请求",
+                        loadingText: "请求数据中...",
+                        noDataText: "没有更多",
+                      ),
+                      controller: _refreshController,
+                      onRefresh: () async {
+                        wordProvider.apiRequestStatus =
+                            APIRequestStatus.loading;
+                        wordProvider.getWordsByFirstPage();
+                        await wordProvider.getWords();
+                        _refreshController.refreshCompleted();
+                      },
+                      onLoading: () async {
+                        if (wordProvider.hasMore) {
+                          wordProvider.page = wordProvider.page + 1;
+                          wordProvider.apiRequestStatus =
+                              APIRequestStatus.loading;
+                          await wordProvider.getWords();
+                          _refreshController.loadComplete();
+
+                          if (wordProvider.hasMore == false) {
+                            _refreshController.loadNoData();
+                          }
+                        }
+                      },
+                      child: _buildListView(wordProvider),
+                    ),
+                  ),
+                  _buildSearchInput(wordProvider),
+                  _buildSearchResult(),
+                ],
               ),
             ),
           );
+          //);
         },
       ),
     );
+  }
+
+  Widget _buildListView(WordProvider wordProvider) {
+    if (wordProvider.words.length == 0) {
+      return Container(
+          padding: EdgeInsets.symmetric(vertical: 60),
+          child: Text(
+            "暂无单词，赶紧搜索添加吧！",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xff999999),
+            ),
+          ));
+    } else {
+      return ListView.builder(
+        itemCount: wordProvider.words.length,
+        shrinkWrap: true,
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+        itemBuilder: (BuildContext context, int index) {
+          return WordCard(
+            scrolling: scrolling,
+            word: wordProvider.words[index],
+            onRemove: (id) {
+              removeWord(wordProvider, id, index);
+            },
+          );
+        },
+      );
+    }
   }
 
   Widget _buildSearchInput(WordProvider wordProvider) {
@@ -269,27 +307,6 @@ class _WordState extends State<Word> {
                               color:
                                   Theme.of(context).textTheme.headline4?.color),
                         ),
-                        // keyword 音频按钮
-                        // WidgetSpan(
-                        //   child: SizedBox(
-                        //     height: 23.0,
-                        //     width: 23.0,
-                        //     child: InkWell(
-                        //       onTap: () {
-                        //         print('---------------------');
-                        //       },
-                        //       child: Card(
-                        //         child: Center(
-                        //           child: Icon(
-                        //             Icons.volume_down,
-                        //             size: 16.0,
-                        //             color: Colors.black,
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
                       ]),
                     ),
                   ),
@@ -310,10 +327,13 @@ class _WordState extends State<Word> {
     handleAudioPlay(item) async {
       final player = AudioPlayer();
       // 请求音频
-      final value = await HttpService.getAudioByKeyword(item.trim());
-      final data = value['data'];
-      await player.setUrl('${HttpService.baseURL}/${data['us_audio']}');
-      player.play();
+      Response res = await HttpService.getAudioByKeyword(item.trim());
+
+      if (res.statusCode == 200) {
+        final data = res.data['data'];
+        await player.setUrl('${HttpService.baseURL}/${data['us_audio']}');
+        player.play();
+      }
     }
 
     List<Widget> list = [];
@@ -335,14 +355,14 @@ class _WordState extends State<Word> {
             height: 24,
             child: IconButton(
               padding: EdgeInsets.all(0),
-              iconSize: 12,
+              iconSize: 13,
               onPressed: () {
                 handleAudioPlay(item);
               },
               icon: Icon(
                 FeatherIcons.volume2,
                 color: Colors.blue,
-                size: 12,
+                size: 16,
               ),
             ),
           )

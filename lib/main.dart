@@ -14,8 +14,11 @@ import 'package:balloon/view_models/home_provider.dart';
 import 'package:balloon/view_models/user_provider.dart';
 import 'package:balloon/views/splash/splash.dart';
 import 'package:balloon/routes/router_tables.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() {
+  timeago.setLocaleMessages('zh_CN', timeago.ZhCnMessages());
+
   runApp(
     MultiProvider(
       providers: [

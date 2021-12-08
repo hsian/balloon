@@ -19,7 +19,7 @@ class LoadingWidget extends StatelessWidget {
         color: Theme.of(context).accentColor,
       );
     } else {
-      return SpinKitThreeBounce(
+      return SpinKitRing(
         color: Theme.of(context).accentColor,
       );
     }

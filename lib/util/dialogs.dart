@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:balloon/components/custom_alert.dart';
-import 'package:balloon/util/consts.dart';
 
 class Dialogs {
   showExitDialog(BuildContext context) {
@@ -18,7 +17,7 @@ class Dialogs {
             children: <Widget>[
               SizedBox(height: 15.0),
               Text(
-                Constants.appName,
+                "提示",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16.0,
@@ -34,7 +33,7 @@ class Dialogs {
               ),
               SizedBox(height: 40.0),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     height: 40,
@@ -42,12 +41,10 @@ class Dialogs {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(50),
                           side:
                               BorderSide(color: Theme.of(context).accentColor),
                         ),
-                        textStyle:
-                            TextStyle(color: Theme.of(context).accentColor),
                       ),
                       child: Text(
                         '取消',
@@ -55,26 +52,26 @@ class Dialogs {
                           color: Theme.of(context).accentColor,
                         ),
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => {},
                     ),
                   ),
+                  SizedBox(width: 40.0),
                   Container(
                     height: 40,
                     width: 130,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: Theme.of(context).accentColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          side:
-                              BorderSide(color: Theme.of(context).accentColor),
+                          borderRadius: BorderRadius.circular(50),
+                          side: BorderSide(
+                              color: Theme.of(context).primaryColor, width: 2),
                         ),
-                        textStyle:
-                            TextStyle(color: Theme.of(context).accentColor),
                       ),
                       child: Text(
                         '确定',
                         style: TextStyle(
-                          color: Theme.of(context).accentColor,
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
                       onPressed: () => exit(0),

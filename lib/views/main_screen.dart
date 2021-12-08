@@ -39,13 +39,15 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () => Dialogs().showExitDialog(context),
+      // onWillPop: () => Dialogs().showExitDialog(context),
+      onWillPop: () => Future(() => true),
       child: Scaffold(
         body: PageView(
           physics: NeverScrollableScrollPhysics(),
           controller: _pageController,
           onPageChanged: onPageChanged,
           children: <Widget>[
+            // Dialogs().showExitDialog(context),
             Home(),
             Explore(),
             Profile(),

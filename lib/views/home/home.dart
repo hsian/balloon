@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:balloon/components/body_builder.dart';
 import 'package:balloon/view_models/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:balloon/routes/router_tables.dart';
+import 'package:bouncing_widget/bouncing_widget.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -10,6 +13,17 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
+  double _scaleFactor = 1.0;
+
+  _onPressed(BuildContext context) {
+    Timer(Duration(milliseconds: 500), () {
+      Navigator.pushNamed(
+        context,
+        RouterTables.wordPath,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -33,106 +47,105 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
   Widget _buildBodyList(HomeProvider homeProvider) {
     homeProvider.changeScreenLoaded();
 
-    return RefreshIndicator(
-        onRefresh: () => homeProvider.getFeeds(),
-        child: Stack(
-          children: [
-            ListView(
-              children: <Widget>[
-                Image.network(
-                  'https://img.wenjutv.net/questions/20190318/fd57630c3b3a20cba6e6bf6ce1057fad.jpg',
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                SizedBox(height: 30.0),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "It's about how hard you can get hit and keep moving forward, How much you can take and keep moving forward.",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 15.0),
-                      Text(
-                        "你能承受多少并且能一直向前",
-                        style: TextStyle(
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            _buildWordNavigator(),
-          ],
-        ));
+    return Container(
+      child: _buildWordNavigator(),
+    );
+    // Stack(
+    //   children: [
+    //     ListView(
+    //       children: <Widget>[
+    //         Image.network(
+    //           'https://img.wenjutv.net/questions/20190318/fd57630c3b3a20cba6e6bf6ce1057fad.jpg',
+    //           height: 180,
+    //           width: double.infinity,
+    //           fit: BoxFit.cover,
+    //         ),
+    //         SizedBox(height: 30.0),
+    //         Container(
+    //           padding: EdgeInsets.symmetric(horizontal: 20),
+    //           child: Column(
+    //             crossAxisAlignment: CrossAxisAlignment.start,
+    //             children: [
+    //               Text(
+    //                 "It's about how hard you can get hit and keep moving forward, How much you can take and keep moving forward.",
+    //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    //               ),
+    //               SizedBox(height: 15.0),
+    //               Text(
+    //                 "你能承受多少并且能一直向前",
+    //                 style: TextStyle(
+    //                   fontSize: 15,
+    //                 ),
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ],
+    // );
   }
 
   Widget _buildWordNavigator() {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 60,
-      child: Container(
-        child: Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
               onPressed: () {},
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  padding: MaterialStateProperty.all(
-                    EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+              child: BouncingWidget(
+                scaleFactor: _scaleFactor,
+                onPressed: () => _onPressed(context),
+                child: Container(
+                  height: 60,
+                  width: 270,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(100.0),
+                    color: Colors.white,
                   ),
-                  elevation: MaterialStateProperty.all(0),
-                  backgroundColor: MaterialStateProperty.all(
-                    Theme.of(context).backgroundColor,
-                  ),
-                  side: MaterialStateProperty.all(
-                    BorderSide(
-                      width: 2,
-                      color: Theme.of(context).dividerColor,
+                  child: Center(
+                    child: Text(
+                      'Subscribe',
+                      style: TextStyle(
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).accentColor,
+                      ),
                     ),
                   ),
-                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(35))),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    RouterTables.wordPath,
-                  );
-                },
-                child: Text(
-                  '我的词库',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.headline6?.color),
                 ),
               ),
             )
-            // new RaisedButton(
-            //   child: new Text(
-            //     '我的单词',
-            //     style: TextStyle(fontSize: 22),
-            //   ),
-            //   onPressed: () {
-            //     MyRouter.pushPage(
-            //       context,
-            //       // Word(),
-            //       Login(),
-            //     );
-            //   },
-            // ),
           ],
         ),
-      ),
+        SizedBox(
+          height: 20,
+        ),
+        Center(
+          child: BouncingWidget(
+            scaleFactor: _scaleFactor,
+            onPressed: () {
+              _onPressed(context);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).accentColor,
+                shape: BoxShape.circle,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Icon(
+                  Icons.add,
+                  color: Theme.of(context).backgroundColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
