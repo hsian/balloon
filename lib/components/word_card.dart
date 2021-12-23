@@ -53,6 +53,10 @@ class _WordCardState extends State<WordCard> {
   Widget build(BuildContext context) {
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
     final timestamp = formatter.parse(word['timestamp']);
+    List translation =
+        word['translation'] != null && word['translation'].isEmpty == false
+            ? word['translation']
+            : [];
 
     return GestureDetector(
       onTap: () {
@@ -87,7 +91,7 @@ class _WordCardState extends State<WordCard> {
                   SizedBox(
                     height: 5,
                   ),
-                  _buildExplains(word['explains']),
+                  _buildExplains(translation),
                   Row(
                     children: [
                       Expanded(
@@ -125,7 +129,7 @@ class _WordCardState extends State<WordCard> {
     );
   }
 
-  _buildExplains(List explains) {
+  _buildExplains(List data) {
     handleAudioPlay(item) async {
       final player = AudioPlayer();
       // 请求音频
@@ -138,7 +142,7 @@ class _WordCardState extends State<WordCard> {
     }
 
     List<Widget> list = [];
-    for (var item in explains) {
+    for (var item in data) {
       list.add(
         Row(children: [
           Expanded(

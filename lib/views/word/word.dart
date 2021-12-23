@@ -25,6 +25,7 @@ class _WordState extends State<Word> {
   bool scrolling = false;
   Map searchResult = {
     "keyword": "",
+    "translation": [],
     "explains": [],
   };
 
@@ -278,6 +279,14 @@ class _WordState extends State<Word> {
   }
 
   Widget _buildSearchResult() {
+    // 因为接口返回的explains可能为空
+    List explains = searchResult['explains'].isEmpty == false
+        ? searchResult['explains']
+        : [];
+    List translation = searchResult['translation'].isEmpty == false
+        ? searchResult['translation']
+        : [];
+
     return Positioned(
       top: 0,
       bottom: 60,
@@ -315,7 +324,11 @@ class _WordState extends State<Word> {
               SizedBox(
                 height: 5,
               ),
-              _buildExplains(searchResult['explains']),
+              _buildExplains(translation),
+              SizedBox(
+                height: 8,
+              ),
+              _buildExplains(explains, title: '其他释义'),
             ],
           ),
         ),
@@ -323,7 +336,7 @@ class _WordState extends State<Word> {
     );
   }
 
-  _buildExplains(List explains) {
+  _buildExplains(List data, {String? title = ''}) {
     handleAudioPlay(item) async {
       final player = AudioPlayer();
       // 请求音频
@@ -337,7 +350,15 @@ class _WordState extends State<Word> {
     }
 
     List<Widget> list = [];
-    for (var item in explains) {
+
+    if (title!.isNotEmpty && data.length > 0) {
+      list.add(Container(
+        padding: EdgeInsets.only(bottom: 5),
+        child: Text(title),
+      ));
+    }
+
+    for (var item in data) {
       list.add(
         Row(children: [
           Expanded(
