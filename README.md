@@ -1,6 +1,6 @@
 # balloon
 
-A new Flutter project.
+随机单词笔记手机应用。
 
 ## Getting Started
 
