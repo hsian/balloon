@@ -1,6 +1,6 @@
 # balloon
 
-随机单词笔记手机应用。
+基于flutter，随手记英文单词应用，兼容IOS, Android。
 
 ## Getting Started
 
